@@ -1,0 +1,66 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.mridang.warning"
+    android:versionCode="1"
+    android:versionName="0.1" >
+
+    <uses-sdk
+        android:minSdkVersion="17"
+        android:targetSdkVersion="19" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/application_name"
+        android:theme="@style/Theme.Settings" >
+        <service
+            android:name="com.mridang.warning.WarningWidget"
+            android:icon="@drawable/ic_dashclock"
+            android:label="@string/extension_name"
+            android:permission="com.google.android.apps.dashclock.permission.READ_EXTENSION_DATA" >
+            <intent-filter>
+                <action android:name="com.google.android.apps.dashclock.Extension" />
+            </intent-filter>
+
+            <meta-data
+                android:name="protocolVersion"
+                android:value="2" />
+            <meta-data
+                android:name="worldReadable"
+                android:value="true" />
+            <meta-data
+                android:name="description"
+                android:value="@string/extension_info" />
+            <meta-data
+                android:name="settingsActivity"
+                android:value=".WidgetSettings" />
+        </service>
+
+        <activity
+            android:name="com.mridang.warning.WidgetSettings"
+            android:exported="true"
+            android:label="@string/preferences_title" >
+        </activity>
+        <activity
+            android:name="com.mridang.warning.WarningActivity"
+            android:exported="true"
+            android:label="@string/problem_activity" >
+        </activity>
+
+        <service
+            android:name=".WarningService"
+            android:enabled="true" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

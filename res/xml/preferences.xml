@@ -1,0 +1,10 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/com.mridang.netbank" >
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="notification"
+        android:summary="@string/summary"
+        android:title="@string/notification" />
+
+</PreferenceScreen>

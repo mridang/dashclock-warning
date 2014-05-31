@@ -1,0 +1,21 @@
+<resources>
+
+    <string name="extension_name">Warning</string>
+    <string name="application_name">Dashclock Warning Extension</string>
+    <string name="extension_info">Displays information about the device\'s application warnings.</string>
+    <string name="preferences_title">Warning Extension Settings</string>
+    <string name="system">System</string>
+    <string name="others">Others</string>
+    <string name="problem_activity">Problems</string>
+    <string name="title">Device has encountered %1$s and %2$s</string>
+    <string name="body">The last issue was noticed around %1$s</string>
+    <string name="notify">Device enountered issues</string>
+    <string name="text">Touch to view</string>
+    <string name="summary">Show a notification when a new warning or failure occurs</string>
+    <string name="notification">Show notification</string>
+    <string name="flush">Flush</string>
+    <string name="dialog">Clear All</string>
+    <string name="question">All the logged problems and issues will be cleared</string>
+    <string name="unrooted_error">The Waddsapp extension for Dashclock requires a rooted device and root access to work. Uninstall the extension, or, root your device and grant root access permanently.</string>
+
+</resources>

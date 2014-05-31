@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <plurals name="warning">
+        <item quantity="zero">no warnings</item>
+        <item quantity="one">one warning</item>
+        <item quantity="other">%d warnings</item>
+    </plurals>
+    <plurals name="failure">
+        <item quantity="zero">no failures</item>
+        <item quantity="one">one failure</item>
+        <item quantity="other">%d failures</item>
+    </plurals>
+
+</resources>

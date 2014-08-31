@@ -20,7 +20,10 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.acra.ACRA;
+
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Notification.Builder;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -28,12 +31,14 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
- * Main service class that monitors the logcat messages and updates the notification
+ * Main service class that monitors the logcat chatter and updates the
+ * notification
  */
 @SuppressLint("SimpleDateFormat")
 public class WarningService extends Service {
@@ -42,10 +47,11 @@ public class WarningService extends Service {
 	private Thread thrWorker;
 
 	/**
-	 * This methods creates a 32bit SHA1 checksum of the of the input string. It is used to uniquely
-	 * identify stack traces
+	 * This methods creates a 32bit SHA1 checksum of the of the input string. It
+	 * is used to uniquely identify stack traces
 	 * 
-	 * @param input The string representation of the stack trace whose checksum needs to be calculated 
+	 * @param input The string representation of the stack trace whose checksum
+	 *            needs to be calculated
 	 * @return The 32bit SHA1 checksum of the string
 	 * @throws NoSuchAlgorithmException
 	 */
@@ -66,8 +72,8 @@ public class WarningService extends Service {
 	}
 
 	/**
-	 * The background worker runnable that is run in a separate thread. This runnable starts the
-	 * logcat process and begins reading the output 
+	 * The background worker runnable that is run in a separate thread. This
+	 * runnable starts the logcat process and begins reading the output
 	 */
 	private class BackgroundThread implements Runnable {
 
@@ -85,8 +91,9 @@ public class WarningService extends Service {
 		private final BufferedReader bufLogcat;
 
 		/**
-		 * Constructor for the runnable that initializes the shared preferences, the background
-		 * process, the interval timer, the notification manager and the buffered reader.
+		 * Constructor for the runnable that initializes the shared preferences,
+		 * the background process, the interval timer, the notification manager
+		 * and the buffered reader.
 		 * 
 		 * @throws IOException When the buffered reader cannot be initialized
 		 */
@@ -114,6 +121,7 @@ public class WarningService extends Service {
 			notBuilder = notBuilder.setOnlyAlertOnce(true);
 
 			ProcessBuilder bldLogcat = new ProcessBuilder(lstArguments);
+			mgrNotifications.cancel(12442);
 			bldLogcat.redirectErrorStream(true);
 			proLogcat = bldLogcat.start();
 			bufLogcat = new BufferedReader(new InputStreamReader(proLogcat.getInputStream()));
@@ -122,10 +130,12 @@ public class WarningService extends Service {
 		}
 
 		/**
-		 * Called when the service is started. This method starts the logcat process and begins
-		 * reading the log messages and processing them. It only monitors error and warning messages
-		 * and looks for stack traces in the stream of messages.
+		 * Called when the service is started. This method starts the logcat
+		 * process and begins reading the log chatter and processing them. It
+		 * only monitors error and warning chatter and looks for stack traces
+		 * in the stream of chatter.
 		 */
+		@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 		@Override
 		public void run() {
 
@@ -166,11 +176,12 @@ public class WarningService extends Service {
 								String strMessage = strLine.substring(strLine.indexOf(":", 18) + 1);
 
 								StringBuffer sbfBuffer = new StringBuffer(intLength);
-								sbfBuffer.append(strRecent.substring(strLine.indexOf(":", 18) + 1) +"\n");
+								sbfBuffer.append(strRecent.substring(strLine.indexOf(":", 18) + 1) + "\n");
 								sbfBuffer.append(strMessage.replace("\t", "  ") + "\n");
 								mapBuffer.put(strProcess, sbfBuffer);
 								tmrDelay.schedule(new TimerTask() {
 
+									@SuppressWarnings("deprecation")
 									@Override
 									public synchronized void run() {
 
@@ -233,7 +244,12 @@ public class WarningService extends Service {
 
 												notBuilder.setWhen(new Date().getTime());
 												notBuilder.setNumber(lstOccurrences.size());
-												mgrNotifications.notify(12442, notBuilder.build());
+
+												if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+													mgrNotifications.notify(12442, notBuilder.getNotification());
+												} else {
+													mgrNotifications.notify(12442, notBuilder.build());
+												}
 
 											}
 
@@ -281,7 +297,7 @@ public class WarningService extends Service {
 							StringBuffer sbfBuffer = mapBuffer.get(strProcess);
 							if (sbfBuffer != null) {
 
-								synchronized(sbfBuffer) {
+								synchronized (sbfBuffer) {
 
 									try {
 
@@ -338,13 +354,15 @@ public class WarningService extends Service {
 	}
 
 	/**
-	 * Initializes the service by getting instances of service managers and mainly setting up
-	 * the receiver to receive all the necessary intents that this service is supposed to handle.
+	 * Initializes the service by getting instances of service managers and
+	 * mainly setting up the receiver to receive all the necessary intents that
+	 * this service is supposed to handle.
 	 */
 	@Override
 	public void onCreate() {
 
 		Log.i("WarningService", "Creating the logcat monitoring service");
+		ACRA.init(new AcraApplication(getApplicationContext()));
 		try {
 
 			this.thrWorker = new Thread(new BackgroundThread());
@@ -356,28 +374,34 @@ public class WarningService extends Service {
 	}
 
 	/**
-	 * Called when the service is being started. This method simply starts the background worker
-	 * thread.
+	 * Called when the service is being started. This method simply starts the
+	 * background worker thread.
+	 * 
 	 * @see android.app.Service#onStartCommand(android.content.Intent, int, int)
 	 */
-	public int onStartCommand(Intent ittIntent, int intFlags, int intId) {  
+	public int onStartCommand(Intent ittIntent, int intFlags, int intId) {
 
 		Log.i("WarningService", "Starting the logcat monitoring service");
-		this.thrWorker.start();
+		if (!this.thrWorker.isAlive()) {
+			this.thrWorker.start();
+		}
 		return Service.START_STICKY;
 
 	}
 
 	/**
-	 * Called when the service is being stopped. This method simply interrupts the background 
-	 * worker thread.
+	 * Called when the service is being stopped. This method simply interrupts
+	 * the background worker thread.
+	 * 
 	 * @see android.app.Service#onDestroy()
 	 */
 	@Override
-	public void onDestroy() {      
+	public void onDestroy() {
 
 		Log.i("WarningService", "Stopping the logcat monitoring service");
-		this.thrWorker.interrupt();
+		if (!this.thrWorker.isInterrupted()) {
+			this.thrWorker.interrupt();
+		}
 
 	}
 
@@ -385,7 +409,7 @@ public class WarningService extends Service {
 	 * @see android.app.Service#onBind(android.content.Intent)
 	 */
 	@Override
-	public IBinder onBind(Intent ittIntent) {        
+	public IBinder onBind(Intent ittIntent) {
 
 		return null;
 

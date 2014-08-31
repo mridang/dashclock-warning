@@ -11,6 +11,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.acra.ACRA;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,12 +38,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
-import com.bugsense.trace.BugSenseHandler;
-
 /*
  * This class is the activity which contains the preferences
  */
-@SuppressWarnings("deprecation")
 public class WarningActivity extends PreferenceActivity {
 
 	/* A boolean value indicating whether this activity should be recreated */
@@ -56,7 +55,9 @@ public class WarningActivity extends PreferenceActivity {
 		private final String strTrace;
 
 		/**
-		 * Constructor for the preference that simply sets a custom layout for itself
+		 * Constructor for the preference that simply sets a custom layout for
+		 * itself
+		 * 
 		 * @param context
 		 */
 		public ErrorPreference(Context ctxContext, String strTrace) {
@@ -125,7 +126,7 @@ public class WarningActivity extends PreferenceActivity {
 				List<String> lstPackages = new ArrayList<String>();
 				for (ApplicationInfo packageInfo : mgrPackages.getInstalledApplications(PackageManager.GET_META_DATA)) {
 
-					if (!packageInfo.packageName.startsWith("com.android") 
+					if (!packageInfo.packageName.startsWith("com.android")
 							&& !packageInfo.packageName.equalsIgnoreCase("android")) {
 						lstPackages.add(packageInfo.packageName);
 					}
@@ -138,7 +139,6 @@ public class WarningActivity extends PreferenceActivity {
 				setPreferenceScreen(pscScreen);
 				SharedPreferences speSettings = PreferenceManager.getDefaultSharedPreferences(WarningActivity.this);
 				Map<Long, String> mySortedMap = new TreeMap<Long, String>(Collections.reverseOrder());
-
 
 				Set<String> setTraces = speSettings.getStringSet("warning", new HashSet<String>());
 				setTraces.addAll(speSettings.getStringSet("failure", new HashSet<String>()));
@@ -154,7 +154,7 @@ public class WarningActivity extends PreferenceActivity {
 
 					} catch (NoSuchAlgorithmException e) {
 						Log.e("WarningActivity", "No SHA1 hashing algorithm found");
-						BugSenseHandler.sendException(e);
+						ACRA.getErrorReporter().handleSilentException(e);
 					}
 
 				}
@@ -165,7 +165,8 @@ public class WarningActivity extends PreferenceActivity {
 					String strLine = strTrace.split("\n")[0];
 					ErrorPreference errException = new ErrorPreference(WarningActivity.this, strTrace);
 					errException.setTitle(strLine);
-					errException.setSummary(DateUtils.formatDateTime(WarningActivity.this, entTrace.getKey(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
+					errException.setSummary(DateUtils.formatDateTime(WarningActivity.this, entTrace.getKey(),
+							DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));
 					errException.setIcon(android.R.drawable.sym_def_app_icon);
 					for (String strPackage : lstPackages) {
 
@@ -203,7 +204,9 @@ public class WarningActivity extends PreferenceActivity {
 	}
 
 	/**
-	 * Sets the flag when the activity is paused so we can recreate it when it is resumed
+	 * Sets the flag when the activity is paused so we can recreate it when it
+	 * is resumed
+	 * 
 	 * @see android.app.Activity#onPause()
 	 */
 	@Override
@@ -215,13 +218,14 @@ public class WarningActivity extends PreferenceActivity {
 	}
 
 	/**
-	 * Forces the activity to recreate all the preferences after the activity was paused
-	 * A handler is used for recreating an activity. Calling recreate directly from the the onResume
-	 * causes a runtime exception
+	 * Forces the activity to recreate all the preferences after the activity
+	 * was paused A handler is used for recreating an activity. Calling recreate
+	 * directly from the the onResume causes a runtime exception
+	 * 
 	 * @see android.app.Activity#onResume()
 	 */
 	@Override
-	public void onResume(){
+	public void onResume() {
 
 		super.onResume();
 		if (booRecreate) {

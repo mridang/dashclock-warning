@@ -3,11 +3,14 @@ package com.mridang.warning;
 import java.util.HashSet;
 import java.util.Random;
 
+import org.acra.ACRA;
+
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
@@ -17,7 +20,6 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.bugsense.trace.BugSenseHandler;
 import com.google.android.apps.dashclock.api.DashClockExtension;
 import com.google.android.apps.dashclock.api.ExtensionData;
 import com.stericson.RootTools.RootTools;
@@ -31,12 +33,14 @@ public class WarningWidget extends DashClockExtension {
 	Intent ittApplication;
 	/* This is the instance of the settings storage of the application */
 	SharedPreferences speSettings;
-	
+
 	/*
-	 * @see com.google.android.apps.dashclock.api.DashClockExtension#onInitialize(boolean)
+	 * @see
+	 * com.google.android.apps.dashclock.api.DashClockExtension#onInitialize
+	 * (boolean)
 	 */
 	@Override
-	protected void onInitialize(boolean isReconnect) {
+	protected void onInitialize(boolean booReconnect) {
 
 		Log.d("WarningWidget", "Initializing");
 		if (RootTools.isRootAvailable() && RootTools.isAccessGiven()) {
@@ -59,7 +63,7 @@ public class WarningWidget extends DashClockExtension {
 			for (RunningServiceInfo rsiService : manager.getRunningServices(Integer.MAX_VALUE)) {
 
 				if (WarningService.class.getName().equals(rsiService.service.getClassName())) {
-					super.onInitialize(isReconnect);
+					super.onInitialize(booReconnect);
 					return;
 				}
 
@@ -67,7 +71,7 @@ public class WarningWidget extends DashClockExtension {
 
 			Log.d("WarningWidget", "Starting the service since it isn't running");
 			getApplicationContext().startService(new Intent(getApplicationContext(), WarningService.class));
-			super.onInitialize(isReconnect);
+			super.onInitialize(booReconnect);
 
 		} else {
 
@@ -86,7 +90,7 @@ public class WarningWidget extends DashClockExtension {
 
 		super.onCreate();
 		Log.d("WarningWidget", "Created");
-		BugSenseHandler.initAndStartSession(this, getString(R.string.bugsense));
+		ACRA.init(new AcraApplication(getApplicationContext()));
 
 	}
 
@@ -112,7 +116,8 @@ public class WarningWidget extends DashClockExtension {
 				Log.d("WarningWidget", String.format("Found %d warnings and %d failures", intWarnings, intFailures));
 				String strFailures = getResources().getQuantityString(R.plurals.failure, intFailures, intFailures);
 				String strWarnings = getResources().getQuantityString(R.plurals.warning, intWarnings, intWarnings);
-				String strBookmark = DateUtils.formatDateTime(this, speSettings.getLong("bookmark", Long.MIN_VALUE), 17);
+				String strBookmark = DateUtils
+						.formatDateTime(this, speSettings.getLong("bookmark", Long.MIN_VALUE), 17);
 
 				edtInformation.clickIntent(ittApplication);
 				edtInformation.expandedBody(getString(R.string.body, strBookmark));
@@ -122,12 +127,12 @@ public class WarningWidget extends DashClockExtension {
 
 			} else {
 
-				Log.d("WarningWidget","Found no warnings or failures");
+				Log.d("WarningWidget", "Found no warnings or failures");
 				edtInformation.visible(false);
 
 			}
 
-			if (new Random().nextInt(5) == 0) {
+			if (new Random().nextInt(5) == 0 && !(0 != (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE))) {
 
 				PackageManager mgrPackages = getApplicationContext().getPackageManager();
 
@@ -144,16 +149,20 @@ public class WarningWidget extends DashClockExtension {
 					for (ResolveInfo info : mgrPackages.queryIntentServices(ittFilter, 0)) {
 
 						strPackage = info.serviceInfo.applicationInfo.packageName;
-						intExtensions = intExtensions + (strPackage.startsWith("com.mridang.") ? 1 : 0); 
+						intExtensions = intExtensions + (strPackage.startsWith("com.mridang.") ? 1 : 0);
 
 					}
 
 					if (intExtensions > 1) {
 
 						edtInformation.visible(true);
-						edtInformation.clickIntent(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("market://details?id=com.mridang.donate")));
+						edtInformation.clickIntent(new Intent(Intent.ACTION_VIEW).setData(Uri
+								.parse("market://details?id=com.mridang.donate")));
 						edtInformation.expandedTitle("Please consider a one time purchase to unlock.");
-						edtInformation.expandedBody("Thank you for using " + intExtensions + " extensions of mine. Click this to make a one-time purchase or use just one extension to make this disappear.");
+						edtInformation
+								.expandedBody("Thank you for using "
+										+ intExtensions
+										+ " extensions of mine. Click this to make a one-time purchase or use just one extension to make this disappear.");
 						setUpdateWhenScreenOn(true);
 
 					}
@@ -167,7 +176,7 @@ public class WarningWidget extends DashClockExtension {
 		} catch (Exception e) {
 			edtInformation.visible(true);
 			Log.e("WarningWidget", "Encountered an error", e);
-			BugSenseHandler.sendException(e);
+			ACRA.getErrorReporter().handleSilentException(e);
 		}
 
 		edtInformation.icon(R.drawable.ic_dashclock);
@@ -183,7 +192,6 @@ public class WarningWidget extends DashClockExtension {
 
 		super.onDestroy();
 		Log.d("WarningWidget", "Destroyed");
-		BugSenseHandler.closeSession(this);
 
 	}
 

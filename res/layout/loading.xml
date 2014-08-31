@@ -20,8 +20,6 @@
         android:clipToPadding="false"
         android:drawSelectorOnTop="false"
         android:listPreferredItemHeight="48dp"
-        android:paddingEnd="16dip"
-        android:paddingStart="16dp"
         android:scrollbarAlwaysDrawVerticalTrack="true"
         android:scrollbarStyle="outsideOverlay"
         android:visibility="gone" />

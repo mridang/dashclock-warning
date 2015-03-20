@@ -11,6 +11,7 @@ public class WidgetSettings extends PreferenceActivity {
 	/*
 	 * @see android.preference.PreferenceActivity#onCreate(android.os.Bundle)
 	 */
+	@SuppressWarnings("ConstantConditions")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 
